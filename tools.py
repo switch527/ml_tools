@@ -8,7 +8,7 @@ def get_results(tune_search):
     best_index = tune_search.best_index
     metrics = list(tune_search.scoring.keys())
 
-    results = {}
+    results = dict()
     results['params'] = params
     results['refit_metric'] = refit_metric
     results['best_refit_index'] = best_index
@@ -26,5 +26,4 @@ def get_results(tune_search):
                                         int(np.where(
                                             cv_results['mean_test_' + i] == max(cv_results['mean_test_' + i]))[
                                                 0])]
-
     return results
