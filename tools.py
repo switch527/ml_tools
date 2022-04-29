@@ -78,3 +78,25 @@ def series_to_supervised(data, y, n_in=1, drop_na=True, ascending=True):
         agg.drop(columns, axis=1, inplace=True)
     # return the finished dataframe
     return agg
+
+
+def series_to_supervised_returns(data, length, functions='return', drop_na=True, ascending=True):
+    # define the dataframe
+    cols = list()
+    cols.append(data)
+
+    name = data.name
+    for i in range(length):
+        column_name = name+'t-' + str(i + 1) + '_return'
+        diff = pd.Series(data - data.shift(i + 1), name=column_name)
+        cols.append(diff)
+    agg = pd.concat(cols, axis=1)
+
+    # drop records that have shifted nan values
+    if drop_na:
+        agg.dropna(inplace=True)
+    # resort to descending if desired
+    if not ascending:
+        agg.sort_index(ascending=False, inplace=True)
+
+    return agg
