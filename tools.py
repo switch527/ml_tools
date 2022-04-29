@@ -35,7 +35,7 @@ def get_results(tune_search):
     return results
 
 
-def series_to_supervised(data, n_in=2, n_out=1, dropnan=True, ascending=True):
+def series_to_supervised(data, y, n_in=1, n_out=1, dropnan=True, ascending=True):
     """
     Frame a time series as a supervised learning dataset.
     Arguments:
@@ -46,29 +46,37 @@ def series_to_supervised(data, n_in=2, n_out=1, dropnan=True, ascending=True):
     Returns:
         Pandas DataFrame of series framed for supervised learning.
     """
+    #ensure data is sorted properly
     data.sort_index(ascending=True, inplace=True)
-
+    #save off column names
     columns = list(data.columns)
-
-    cols, names = list(), list()
+    #instantiate list to hold shifted dataframes
+    cols = list()
+    #append the t-0 data to the list
     cols.append(data)
     # input sequence (t-n, ... t-1)
-    for i in range(1, n_in, 1):
+    for i in range(1, n_in+1, 1):
+        #instantiate dictionary for calumn names, used for renaming
         column_names = dict()
-
+        #loop to add the proper t-n annotation to the column names
         for ii in columns:
-            column_names[ii] = str(ii) + '(t-' + str(i) + ')'
-
+            #insert they key and values to the column name dictionary for renaming
+            column_names[ii] = str(ii)+'(t-'+str(i)+')'
+        #append shifted dataframe to list of dataframes and rename columns based on dictionary of t-n annotations above
         cols.append(data.shift(i).rename(columns=column_names))
-
+    #create large dataframe from list of dataframes
     agg = pd.concat(cols, axis=1)
-
+    #drop records that have shifted nan values
     if dropnan:
         agg.dropna(inplace=True)
-
+    #resort to descending if desired
     if not ascending:
         agg.sort_index(ascending=False, inplace=True)
-
+    #if a y variabel has been determined, drop all other t-0 columns
+    if y:
+        columns.remove(y)
+        agg.drop(columns, axis=1, inplace=True)
+    #return the finished dataframe
     return agg
 
 
